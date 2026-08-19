@@ -13,7 +13,9 @@ h3.section-heading { margin-top: 28px; font-size: 19px; }
 .section-heading:hover .heading-anchor { opacity: 1; }
 .article p { margin: 14px 0; color: color-mix(in srgb, var(--text) 88%, var(--muted)); font-size: 16px; }
 .article strong { color: var(--text); }
+ruby { ruby-position: over; }
 ruby rt { font-size: .55em; color: var(--muted); }
+:root[data-furigana="hidden"] ruby rt { display: none; }
 .callout { display: grid; grid-template-columns: 24px 1fr; gap: 10px; margin: 20px 0; padding: 15px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-soft); font-size: 14px; }
 .callout-icon { width: 20px; height: 20px; display: grid; place-items: center; border: 1px solid var(--border-strong); border-radius: 50%; font-size: 11px; font-weight: 800; }
 .callout strong { display: block; margin-bottom: 2px; }
