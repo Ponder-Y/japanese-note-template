@@ -2,6 +2,12 @@
 
 一個零相依、可直接部署到 GitHub Pages 的日文筆記文件站模板。版型以現代文件站為基礎，適合把文法、單字、學習筆記統一成固定格式。
 
+## 線上預覽
+
+GitHub Pages：
+
+https://ponder-y.github.io/japanese-note-template/
+
 ## 已實作功能
 
 - 桌機三欄：左側筆記樹 / 中央文章 / 右側 `On this page`
@@ -86,14 +92,11 @@ python -m http.server 8080
 
 ## GitHub Pages
 
-如果 repo 名稱為 `japanese-note-template`：
+此專案使用 `.github/workflows/pages.yml` 自動部署 GitHub Pages。
 
-1. Push 到 GitHub。
-2. Repository → Settings → Pages。
-3. Build and deployment 選 `Deploy from a branch`。
-4. Branch 選 `main` / `/ (root)`。
+Repository → Settings → Pages → Build and deployment → Source 請選 `GitHub Actions`。
 
-純靜態專案不需要額外 GitHub Actions。
+之後每次 push 到 `main` 都會自動重新發布。
 
 ## 設計說明
 
