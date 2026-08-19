@@ -1,5 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import './extra-notes.js';
 import NotebookApp from './NotebookApp.jsx';
 import '../styles.css';
 
