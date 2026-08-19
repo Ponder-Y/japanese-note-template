@@ -1,44 +1,54 @@
 # Japanese Note Template
 
-一個零相依、可直接部署到 GitHub Pages 的日文筆記文件站模板。版型以現代文件站為基礎，適合把文法、單字、學習筆記統一成固定格式。
+以 React + Vite 製作的日文筆記文件站模板，版型參考現代文件站的閱讀體驗，適合統一整理文法、單字與學習筆記。
 
 ## 線上預覽
-
-GitHub Pages：
 
 https://ponder-y.github.io/japanese-note-template/
 
 ## 已實作功能
 
-- 桌機三欄：左側筆記樹 / 中央文章 / 右側 `On this page`
-- 行動版側欄抽屜與遮罩
+- React SPA：切換筆記不重新載入整個頁面
+- Browser History：上一頁 / 下一頁可正常切換筆記
+- 桌機：最左側固定 Sidebar Rail + 可摺疊筆記目錄
+- 行動版：Sidebar Drawer + Overlay
+- Sidebar 底部固定「顯示漢字讀音」與「深色模式」
+- Furigana 全站切換：可顯示 / 隱藏 `<ruby><rt>` 平假名
+- Sidebar、Furigana、Theme 偏好使用 `localStorage` 保存
 - `Ctrl + K` / `⌘ + K` 搜尋
 - 搜尋鍵盤操作：↑ / ↓ / Enter / Esc
-- 深色 / 淺色主題，會記住使用者選擇
-- 左側群組展開 / 收合與目前頁面高亮
-- 右側目錄 Scroll Spy
+- 左側群組展開 / 收合與目前頁面 Highlight
+- 右側 `On this page` + Scroll Spy
 - 標題 Anchor Link
-- 前一篇 / 下一篇導覽卡
-- 日文 `<ruby>` 振假名顯示
+- 前一篇 / 下一篇 SPA 導覽
 - 表格、提示框、例句、會話、練習題、答案展開元件
-- Responsive layout
-- 無 npm / bundler / framework，相容 GitHub Pages
+- Responsive Layout
+
+## 技術棧
+
+- React 19
+- Vite 8
+- CSS
+- GitHub Actions
+- GitHub Pages
 
 ## 本機啟動
 
-因為是純靜態檔案，只要啟動任一 HTTP Server：
-
 ```bash
-python -m http.server 8080
+npm install
+npm run dev
 ```
 
-然後開啟 `http://localhost:8080`。
+Production build：
 
-也可以使用 VS Code 的 Live Server。
+```bash
+npm run build
+npm run preview
+```
 
 ## 新增筆記
 
-筆記資料集中在 `data.js`。
+筆記資料集中在 `src/data.js`。
 
 ### 1. 在 `notes` 新增內容
 
@@ -84,34 +94,38 @@ python -m http.server 8080
 
 ## Furigana
 
-使用 HTML Ruby：
+筆記內容使用標準 HTML Ruby：
 
 ```html
 <ruby>日本語<rt>にほんご</rt></ruby>
 ```
 
+Sidebar 的「顯示漢字讀音」會控制整個頁面的 `rt` 顯示狀態。
+
+## SPA Routing
+
+目前使用 React state 搭配 Browser History API：
+
+```text
+?note=note-template
+?note=condition-summary
+```
+
+使用者點擊 Sidebar、搜尋結果、Previous / Next 時，只更新 React 內容與 URL，不會重新整理 document。
+
 ## GitHub Pages
 
-此專案使用 `.github/workflows/pages.yml` 自動部署 GitHub Pages。
+`.github/workflows/pages.yml` 會在每次 push 到 `main` 時：
 
-Repository → Settings → Pages → Build and deployment → Source 請選 `GitHub Actions`。
+```text
+npm install
+→ npm run build
+→ 上傳 dist/
+→ GitHub Pages deploy
+```
 
-之後每次 push 到 `main` 都會自動重新發布。
+Repository → Settings → Pages → Build and deployment → Source 必須設為 `GitHub Actions`。
 
 ## 設計說明
 
-此專案是自行實作的文件站 UI，不包含參考網站的原始碼、品牌素材或文章內容。目的在於重現文件閱讀體驗與資訊架構，讓你能作為自己的筆記模板持續擴充。
-
-## 一鍵建立 GitHub Repo（Windows PowerShell）
-
-如果已安裝並登入 GitHub CLI：
-
-```powershell
-./publish.ps1
-```
-
-預設會建立 public repo `japanese-note-template`。如果要 private：
-
-```powershell
-./publish.ps1 -Visibility private
-```
+此專案是自行實作的文件站 UI，不包含參考網站的原始碼、品牌素材或文章內容。目的在於重現文件閱讀體驗與資訊架構，作為自己的筆記模板持續擴充。
