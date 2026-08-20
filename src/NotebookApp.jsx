@@ -47,6 +47,8 @@ function Icon({ name }) {
       return <svg {...common}><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16M14 9l-3 3 3 3" /></svg>;
     case 'panel-open':
       return <svg {...common}><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16M11 9l3 3-3 3" /></svg>;
+    case 'close':
+      return <svg {...common}><path d="m6 6 12 12M18 6 6 18" /></svg>;
     case 'reading':
       return <svg {...common}><path d="M5 5h7M8.5 5v8M5.8 9h5.4M4 15h9M16 6h4M18 6v12M15 11h6" /></svg>;
     case 'moon':
@@ -270,69 +272,109 @@ export default function NotebookApp() {
   };
 
   const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
+  const searchShortcut = isMac ? '⌘ K' : 'Ctrl K';
 
   return (
-    <>
-      <header className="topbar">
-        <div className="topbar-inner">
-          <button className="icon-button mobile-only" type="button" aria-label="開啟目錄" aria-expanded={mobileOpen} onClick={() => setMobileOpen(value => !value)}><Icon name="menu" /></button>
-          <a className="brand" href="?note=note-template" aria-label="日本語筆記首頁" onClick={event => noteLink(event, DEFAULT_SLUG)}><span className="brand-mark">上</span><span className="brand-text">日本語筆記</span></a>
-          <button className="search-trigger" type="button" aria-label="搜尋筆記" onClick={openSearch}><Icon name="search" /><span>Search</span><kbd>{isMac ? '⌘ K' : 'Ctrl K'}</kbd></button>
-          <nav className="topnav desktop-only" aria-label="主要導覽">
-            <a href={notebook.site.feedbackUrl || '#feedback'}>意見回饋</a>
-            <a href="?note=note-template" onClick={event => noteLink(event, 'note-template')}>文法筆記</a>
-            <a href="?note=vocabulary-template" onClick={event => noteLink(event, 'vocabulary-template')}>單字練習</a>
-          </nav>
-        </div>
-      </header>
-
+    <div className={`app-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       <div className={`mobile-overlay ${mobileOpen ? 'show' : ''}`} onClick={() => setMobileOpen(false)} />
 
-      <div className={`docs-layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-        <div className="sidebar-rail desktop-sidebar-rail" aria-label="側邊欄控制">
-          <button className="rail-button" type="button" aria-label={sidebarCollapsed ? '展開側邊欄' : '摺疊側邊欄'} onClick={() => setSidebarCollapsed(value => !value)}><Icon name={sidebarCollapsed ? 'panel-open' : 'panel-close'} /></button>
+      {sidebarCollapsed && (
+        <button className="sidebar-reopen desktop-only" type="button" aria-label="展開側邊欄" onClick={() => setSidebarCollapsed(false)}>
+          <Icon name="panel-open" />
+        </button>
+      )}
+
+      <aside className={`sidebar ${mobileOpen ? 'open' : ''}`} aria-label="筆記目錄">
+        <div className="sidebar-header">
+          <a className="sidebar-brand" href="?note=note-template" aria-label="日本語筆記首頁" onClick={event => noteLink(event, DEFAULT_SLUG)}>
+            <span className="brand-mark">上</span>
+            <span className="sidebar-brand-text">日本語筆記</span>
+          </a>
+
+          <div className="sidebar-header-actions">
+            <button className="sidebar-tool-button" type="button" aria-label={`搜尋筆記（${searchShortcut}）`} title={`搜尋（${searchShortcut}）`} onClick={openSearch}>
+              <Icon name="search" />
+            </button>
+            <button className="sidebar-tool-button desktop-only" type="button" aria-label="摺疊側邊欄" title="摺疊側邊欄" onClick={() => setSidebarCollapsed(true)}>
+              <Icon name="panel-close" />
+            </button>
+            <button className="sidebar-tool-button mobile-only" type="button" aria-label="關閉側邊欄" onClick={() => setMobileOpen(false)}>
+              <Icon name="close" />
+            </button>
+          </div>
         </div>
 
-        <aside className={`sidebar ${mobileOpen ? 'open' : ''}`} aria-label="筆記目錄">
-          <div className="sidebar-scroll">
-            <div className="sidebar-section sidebar-intro"><div className="sidebar-caption">{notebook.site.homeDescription}</div></div>
-            {notebook.groups.map(group => {
-              const collapsed = Boolean(collapsedGroups[group.id]);
-              return (
-                <section className={`sidebar-section ${collapsed ? 'collapsed' : ''}`} key={group.id}>
-                  <button className="sidebar-group-title" type="button" aria-expanded={!collapsed} onClick={() => setCollapsedGroups(value => ({ ...value, [group.id]: !value[group.id] }))}><span>{group.title}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
-                  <div className="sidebar-items">
-                    {group.items.map(item => <a className={`sidebar-link ${item.slug === currentSlug ? 'active' : ''}`} href={`?note=${encodeURIComponent(item.slug)}`} onClick={event => noteLink(event, item.slug)} key={item.slug}>{item.title}</a>)}
-                  </div>
-                </section>
-              );
-            })}
-          </div>
+        <div className="sidebar-scroll">
+          <div className="sidebar-section sidebar-intro"><div className="sidebar-caption">{notebook.site.homeDescription}</div></div>
+          {notebook.groups.map(group => {
+            const collapsed = Boolean(collapsedGroups[group.id]);
+            return (
+              <section className={`sidebar-section ${collapsed ? 'collapsed' : ''}`} key={group.id}>
+                <button className="sidebar-group-title" type="button" aria-expanded={!collapsed} onClick={() => setCollapsedGroups(value => ({ ...value, [group.id]: !value[group.id] }))}>
+                  <span>{group.title}</span>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+                </button>
+                <div className="sidebar-items">
+                  {group.items.map(item => (
+                    <a className={`sidebar-link ${item.slug === currentSlug ? 'active' : ''}`} href={`?note=${encodeURIComponent(item.slug)}`} onClick={event => noteLink(event, item.slug)} key={item.slug}>
+                      {item.title}
+                    </a>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
+        </div>
 
-          <div className="sidebar-footer">
-            <SettingButton icon="reading" title="顯示漢字讀音" subtitle={showFurigana ? '平假名顯示中' : '平假名已隱藏'} on={showFurigana} onClick={() => setShowFurigana(value => !value)} />
-            <SettingButton icon="moon" title="深色模式" subtitle={theme === 'dark' ? '目前使用深色' : '目前使用淺色'} on={theme === 'dark'} onClick={() => setTheme(value => value === 'dark' ? 'light' : 'dark')} />
-          </div>
-        </aside>
+        <div className="sidebar-footer">
+          <SettingButton icon="reading" title="顯示漢字讀音" subtitle={showFurigana ? '平假名顯示中' : '平假名已隱藏'} on={showFurigana} onClick={() => setShowFurigana(value => !value)} />
+          <SettingButton icon="moon" title="深色模式" subtitle={theme === 'dark' ? '目前使用深色' : '目前使用淺色'} on={theme === 'dark'} onClick={() => setTheme(value => value === 'dark' ? 'light' : 'dark')} />
+        </div>
+      </aside>
 
-        <main className="main-column">
-          <article className="article">
-            <div className="breadcrumbs"><a href="?note=note-template" onClick={event => noteLink(event, DEFAULT_SLUG)}>{notebook.site.title}</a><span>/</span><span>{note.category}</span></div>
-            <header className="article-header"><h1>{note.title}</h1><p className="lead">{note.description}</p></header>
-            <hr className="rule" />
-            {note.sections.map(section => <section className="content-section" key={section.id}><Heading id={section.id} title={section.title} level={section.level || 2} />{section.blocks.map((block, index) => <Block block={block} key={`${section.id}-${block.id || block.type}-${index}`} />)}</section>)}
-            <div className="updated">最近更新：{note.updated}</div>
-            <nav className="pager" aria-label="前後篇導覽">
-              {note.prev ? <a className="pager-card prev" href={`?note=${encodeURIComponent(note.prev.slug)}`} onClick={event => noteLink(event, note.prev.slug)}><span className="pager-kicker">Previous</span><strong>{note.prev.title}</strong><span>{note.prev.description || ''}</span></a> : <div />}
-              {note.next ? <a className="pager-card next" href={`?note=${encodeURIComponent(note.next.slug)}`} onClick={event => noteLink(event, note.next.slug)}><span className="pager-kicker">Next</span><strong>{note.next.title}</strong><span>{note.next.description || ''}</span></a> : <div />}
+      <div className="main-shell">
+        <header className="topbar">
+          <div className="topbar-inner">
+            <button className="icon-button mobile-only" type="button" aria-label="開啟目錄" aria-expanded={mobileOpen} onClick={() => setMobileOpen(true)}><Icon name="menu" /></button>
+            <span className="mobile-topbar-title mobile-only">日本語筆記</span>
+            <nav className="topnav desktop-only" aria-label="主要導覽">
+              <a href={notebook.site.feedbackUrl || '#feedback'}>意見回饋</a>
+              <a href="?note=note-template" onClick={event => noteLink(event, 'note-template')}>文法筆記</a>
+              <a href="?note=vocabulary-template" onClick={event => noteLink(event, 'vocabulary-template')}>單字練習</a>
             </nav>
-            <section className="feedback" id="feedback"><strong>這份筆記有需要補充嗎？</strong><span>把 feedbackUrl 改成你的 GitHub Issues，就能把這裡接成回饋入口。</span></section>
-          </article>
-        </main>
+          </div>
+        </header>
 
-        <aside className="toc-column" aria-label="本頁目錄">
-          <div className="toc-sticky"><div className="toc-title">On this page</div><nav className="toc">{tocEntries.map(entry => <a href={`#${entry.id}`} className={`toc-level-${entry.level} ${activeToc === entry.id ? 'active' : ''}`} onClick={event => scrollToHeading(event, entry.id)} key={entry.id}>{entry.title}</a>)}</nav></div>
-        </aside>
+        <div className="docs-layout">
+          <main className="main-column">
+            <article className="article">
+              <div className="breadcrumbs"><a href="?note=note-template" onClick={event => noteLink(event, DEFAULT_SLUG)}>{notebook.site.title}</a><span>/</span><span>{note.category}</span></div>
+              <header className="article-header"><h1>{note.title}</h1><p className="lead">{note.description}</p></header>
+              <hr className="rule" />
+              {note.sections.map(section => (
+                <section className="content-section" key={section.id}>
+                  <Heading id={section.id} title={section.title} level={section.level || 2} />
+                  {section.blocks.map((block, index) => <Block block={block} key={`${section.id}-${block.id || block.type}-${index}`} />)}
+                </section>
+              ))}
+              <div className="updated">最近更新：{note.updated}</div>
+              <nav className="pager" aria-label="前後篇導覽">
+                {note.prev ? <a className="pager-card prev" href={`?note=${encodeURIComponent(note.prev.slug)}`} onClick={event => noteLink(event, note.prev.slug)}><span className="pager-kicker">Previous</span><strong>{note.prev.title}</strong><span>{note.prev.description || ''}</span></a> : <div />}
+                {note.next ? <a className="pager-card next" href={`?note=${encodeURIComponent(note.next.slug)}`} onClick={event => noteLink(event, note.next.slug)}><span className="pager-kicker">Next</span><strong>{note.next.title}</strong><span>{note.next.description || ''}</span></a> : <div />}
+              </nav>
+              <section className="feedback" id="feedback"><strong>這份筆記有需要補充嗎？</strong><span>把 feedbackUrl 改成你的 GitHub Issues，就能把這裡接成回饋入口。</span></section>
+            </article>
+          </main>
+
+          <aside className="toc-column" aria-label="本頁目錄">
+            <div className="toc-sticky">
+              <div className="toc-title">On this page</div>
+              <nav className="toc">
+                {tocEntries.map(entry => <a href={`#${entry.id}`} className={`toc-level-${entry.level} ${activeToc === entry.id ? 'active' : ''}`} onClick={event => scrollToHeading(event, entry.id)} key={entry.id}>{entry.title}</a>)}
+              </nav>
+            </div>
+          </aside>
+        </div>
       </div>
 
       <dialog className="search-dialog" ref={searchDialogRef} aria-label="搜尋筆記" onClose={() => setSearchOpen(false)} onClick={event => { if (event.target === searchDialogRef.current) setSearchOpen(false); }}>
@@ -344,6 +386,6 @@ export default function NotebookApp() {
           <div className="search-footer"><span><kbd>↑</kbd><kbd>↓</kbd> 選擇</span><span><kbd>Enter</kbd> 開啟</span></div>
         </div>
       </dialog>
-    </>
+    </div>
   );
 }
